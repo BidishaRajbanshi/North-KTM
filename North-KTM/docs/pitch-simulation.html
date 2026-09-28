@@ -1,0 +1,293 @@
+<title>SafeSewer Control Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,600;112..125,800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#EBEFED; --surface:#FFFFFF; --sunk:#F4F6F5; --ink:#16201C; --muted:#5B6A64; --line:#D3DBD7;
+  --accent:#0F6B5C; --accent-ink:#FFFFFF; --amber:#B77800; --amber-bg:#FFF4DB;
+  --red:#B8302A; --red-bg:#FBE7E5; --green:#27704A; --green-bg:#E3F2E8;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --ground:#0D1311; --surface:#151D1A; --sunk:#101715; --ink:#E4ECE8; --muted:#93A39C; --line:#2A3632;
+  --accent:#4FB8A2; --accent-ink:#06201A; --amber:#F0B43C; --amber-bg:#2E240E;
+  --red:#FF7A6E; --red-bg:#3A1714; --green:#6CCB93; --green-bg:#122B1D;}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --ground:#0D1311; --surface:#151D1A; --sunk:#101715; --ink:#E4ECE8; --muted:#93A39C; --line:#2A3632;
+  --accent:#4FB8A2; --accent-ink:#06201A; --amber:#F0B43C; --amber-bg:#2E240E;
+  --red:#FF7A6E; --red-bg:#3A1714; --green:#6CCB93; --green-bg:#122B1D;}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.5 var(--body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:16px}
+h1,h2{font-family:var(--display);font-stretch:125%;margin:0;text-wrap:balance}
+h1{font-size:clamp(22px,4vw,32px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.demo{font-size:12px;color:var(--amber);background:var(--amber-bg);border-radius:4px;padding:2px 8px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between}
+.jobmeta{display:flex;flex-wrap:wrap;gap:6px 20px;color:var(--muted);font-size:13px}
+.jobmeta b{color:var(--ink);font-weight:500}
+.controls{display:flex;flex-wrap:wrap;gap:8px}
+button{font:600 14px var(--body);border-radius:6px;padding:10px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+button:hover:not(:disabled){border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.danger{color:var(--red)}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:14px;align-content:start;min-width:0}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.readouts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:520px){.readouts{grid-template-columns:repeat(2,1fr)}}
+.ro{background:var(--sunk);border-radius:6px;padding:8px 10px}
+.ro span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ro b{font:500 20px var(--mono);font-variant-numeric:tabular-nums}
+.ro.warn b{color:var(--amber)} .ro.crit b{color:var(--red)}
+.chartbox{position:relative}
+canvas{display:block;width:100%;max-width:100%}
+.thermal-wrap{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:14px;align-items:start}
+@media (max-width:520px){.thermal-wrap{grid-template-columns:1fr}}
+.verdict{border-radius:6px;padding:10px 12px;font-weight:600;font-size:14px}
+.verdict.ok{background:var(--green-bg);color:var(--green)}
+.verdict.bad{background:var(--red-bg);color:var(--red)}
+.verdict.idle{background:var(--sunk);color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.steps li:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);margin-top:4px}
+.steps li.done{color:var(--ink)} .steps li.done .dot{background:var(--accent);border-color:var(--accent)}
+.steps li.now{color:var(--ink);font-weight:600} .steps li.now .dot{border-color:var(--accent);animation:pulse 1s infinite}
+.steps li.fail{color:var(--red);font-weight:600} .steps li.fail .dot{background:var(--red);border-color:var(--red)}
+@keyframes pulse{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent)}}
+@media (prefers-reduced-motion:reduce){.steps li.now .dot{animation:none}}
+.money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.money div{background:var(--sunk);border-radius:6px;padding:8px 10px}
+.money span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.money b{font:500 17px var(--mono)}
+.log{background:var(--sunk);border-radius:6px;padding:10px;max-height:260px;overflow:auto;font:12.5px/1.55 var(--mono);display:grid;gap:4px}
+.log div{word-break:break-all}
+.log .ev{color:var(--accent);font-weight:500}
+.log .rv{color:var(--red);font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:600px){.stats{grid-template-columns:1fr}}
+.stat b{font:800 28px var(--display);font-stretch:125%;display:block}
+.stat.red b{color:var(--red)}
+footer{font-size:12px;color:var(--muted);max-width:75ch}
+</style>
+
+<div class="wrap">
+  <header>
+    <div style="display:grid;gap:6px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2>SafeSewer · Municipal control room</h2><span class="demo">Demo simulation</span></div>
+      <h1>Manhole BBMP-JAYANAGAR-MH-0417</h1>
+      <div class="jobmeta">
+        <span>Job <b class="mono" id="jobNo">#1</b></span>
+        <span>Contractor <b>Sri Ganesh Drain Works</b> <small>(sample)</small></span>
+        <span>Robot <b class="mono">0x3C44…93BC</b></span>
+        <span>Chain <b>MST testnet · 91562037</b></span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="bClean">Run robot job</button>
+      <button class="danger" id="bHuman">Simulate human entry</button>
+      <button id="bTamper">Tamper with log</button>
+      <button id="bReset">Reset</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-label="Robot telemetry">
+      <div class="row"><h2>Robot telemetry</h2><span class="small mono" id="clock">idle</span></div>
+      <div class="readouts">
+        <div class="ro" id="roGas"><span>H₂S</span><b id="vGas">—</b></div>
+        <div class="ro" id="roTh"><span>Thermal max</span><b id="vTh">—</b></div>
+        <div class="ro"><span>Sludge depth</span><b id="vDepth">—</b></div>
+        <div class="ro"><span>Motor current</span><b id="vMotor">—</b></div>
+      </div>
+      <div class="chartbox"><canvas id="gasChart" height="170" aria-label="Hydrogen sulphide readings over time"></canvas></div>
+      <div class="small">Dashed lines: 10 ppm is the NIOSH 10-minute ceiling (robot alarm); 50 ppm is OSHA's peak limit. A worker would be breathing this.</div>
+      <div class="thermal-wrap">
+        <canvas id="thermal" width="320" height="240" aria-label="Thermal camera view inside the manhole"></canvas>
+        <div style="display:grid;gap:8px">
+          <h2>Human check</h2>
+          <div class="verdict idle" id="verdict">Waiting for robot</div>
+          <div class="small">32×24 thermal frame. More than 12 pixels above 31 °C inside the pipe counts as a person.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="On-chain escrow">
+      <div class="row"><h2>Escrow & proof</h2><span class="small mono" id="window"></span></div>
+      <div class="money">
+        <div><span>Escrow</span><b id="mEscrow">1.00</b></div>
+        <div><span>Contractor bond</span><b id="mBond">0.50</b></div>
+        <div><span>Welfare fund</span><b id="mWelfare">0.00</b></div>
+      </div>
+      <ol class="steps" id="steps"></ol>
+      <h2>Contract events</h2>
+      <div class="log" id="log" aria-live="polite"><div class="small">No transactions yet.</div></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>City record (this demo session)</h2>
+    <div class="stats">
+      <div class="stat"><b id="sSafe">0</b><span class="small">jobs paid with zero human entry</span></div>
+      <div class="stat red"><b id="sHuman">0</b><span class="small">human entries caught and recorded permanently</span></div>
+      <div class="stat"><b id="sBlocked">0</b><span class="small">tampered proofs rejected by the contract</span></div>
+    </div>
+  </section>
+
+  <footer>Simulated front end for the pitch. The real contract, robot script and tests run separately (see README). Amounts are MSTC testnet tokens. The contractor name is a placeholder.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const hex = n => '0x' + [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2,'0')).join('');
+const short = h => h.slice(0,10) + '…' + h.slice(-6);
+async function sha(str){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return '0x'+[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+
+const STEPS = ['Read manhole NFC tag','Robot descends, logs sensors every second','Hash evidence bundle','Robot signs proof with its own key','Contract verifies signature and rules','Challenge window for inspectors','Payment released to contractor'];
+let S, gas = [], jobNo = 1, running = false;
+const stats = {safe:0,human:0,blocked:0};
+
+function reset(keepJob){
+  S = {escrow:1, bond:0.5, welfare:S?S.welfare:0};
+  if(!keepJob){S.welfare = 0;}
+  gas = []; drawGas(); drawThermal(false,0);
+  $('steps').innerHTML = STEPS.map(s=>`<li><span class="dot"></span><span>${s}</span></li>`).join('');
+  $('log').innerHTML = '<div class="small">No transactions yet.</div>';
+  ['vGas','vTh','vDepth','vMotor'].forEach(i=>$(i).textContent='—');
+  $('roGas').className='ro'; $('roTh').className='ro';
+  verdict('idle','Waiting for robot'); $('clock').textContent='idle'; $('window').textContent='';
+  $('jobNo').textContent = '#'+jobNo; money();
+}
+function money(){ $('mEscrow').textContent=S.escrow.toFixed(2); $('mBond').textContent=S.bond.toFixed(2); $('mWelfare').textContent=S.welfare.toFixed(2); }
+function verdict(k,t){ const v=$('verdict'); v.className='verdict '+k; v.textContent=t; }
+function step(i,state){ const li=$('steps').children[i]; if(li) li.className=state; }
+function log(html,cls=''){ const l=$('log'); if(l.firstElementChild?.classList.contains('small')) l.innerHTML=''; const d=document.createElement('div'); d.className=cls; d.innerHTML=html; l.appendChild(d); l.scrollTop=l.scrollHeight; }
+function lock(on){ running=on; ['bClean','bHuman','bTamper','bReset'].forEach(b=>$(b).disabled=on && b!=='bReset'); }
+
+/* ---- gas chart ---- */
+function drawGas(){
+  const c=$('gasChart'), dpr=devicePixelRatio||1, w=c.clientWidth||600, h=170;
+  c.width=w*dpr; c.height=h*dpr; const x=c.getContext('2d'); x.scale(dpr,dpr);
+  const pad={l:34,r:8,t:8,b:20}, max=60, N=24;
+  const X=i=>pad.l+(w-pad.l-pad.r)*i/(N-1), Y=v=>pad.t+(h-pad.t-pad.b)*(1-v/max);
+  x.fillStyle=css('--sunk'); x.fillRect(0,0,w,h);
+  x.font='11px "IBM Plex Mono",monospace'; x.fillStyle=css('--muted'); x.strokeStyle=css('--line'); x.lineWidth=1;
+  [0,20,40,60].forEach(v=>{x.beginPath();x.moveTo(pad.l,Y(v));x.lineTo(w-pad.r,Y(v));x.stroke();x.fillText(v,6,Y(v)+4);});
+  x.fillText('ppm · seconds →',pad.l+4,h-5);
+  x.setLineDash([4,4]);
+  [[10,css('--amber')],[50,css('--red')]].forEach(([v,col])=>{x.strokeStyle=col;x.beginPath();x.moveTo(pad.l,Y(v));x.lineTo(w-pad.r,Y(v));x.stroke();});
+  x.setLineDash([]);
+  if(!gas.length) return;
+  const acc=css('--accent');
+  x.beginPath(); gas.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v))); x.lineTo(X(gas.length-1),Y(0)); x.lineTo(X(0),Y(0)); x.closePath();
+  x.globalAlpha=.15; x.fillStyle=acc; x.fill(); x.globalAlpha=1;
+  x.beginPath(); gas.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v))); x.strokeStyle=acc; x.lineWidth=2; x.stroke();
+  const L=gas.length-1; x.beginPath(); x.arc(X(L),Y(gas[L]),4,0,7); x.fillStyle=acc; x.fill();
+}
+addEventListener('resize',drawGas);
+
+/* ---- thermal ---- */
+function ramp(t){ // 20°C..38°C → dark blue → purple → orange → yellow
+  const k=Math.max(0,Math.min(1,(t-20)/18));
+  const stops=[[20,24,60],[90,30,120],[200,60,60],[245,150,40],[255,235,120]];
+  const p=k*(stops.length-1), i=Math.floor(p), f=p-i, a=stops[i], b=stops[Math.min(i+1,stops.length-1)];
+  return `rgb(${a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(',')})`;
+}
+let seed=[...Array(768)].map(()=>Math.random());
+function drawThermal(human,grow){
+  const c=$('thermal'), x=c.getContext('2d'), cw=c.width/32, ch=c.height/24; let warm=0, tmax=0;
+  for(let r=0;r<24;r++)for(let q=0;q<32;q++){
+    let t=24+seed[r*32+q]*3+(r>18?1.5:0);
+    if(human){ // head + torso silhouette, warming as the person moves into view
+      const head=((q-16)/2.2)**2+((r-5)/2.4)**2, body=((q-16)/4.6)**2+((r-15)/7)**2;
+      const d=Math.min(head,body); if(d<1) t=Math.max(t,30+6*(1-d*.6)*grow);}
+    if(t>=31) warm++; tmax=Math.max(tmax,t);
+    x.fillStyle=ramp(t); x.fillRect(q*cw,r*ch,cw+.5,ch+.5);
+  }
+  return {warm,tmax};
+}
+
+/* ---- scenario ---- */
+async function run(mode){
+  if(running) return; lock(true); reset(true);
+  const t0=performance.now(), secs=24, humanAt=9;
+  const tick=()=>$('clock').textContent=((performance.now()-t0)/1000).toFixed(1)+' s';
+
+  step(0,'now'); await sleep(600); step(0,'done');
+  log('NFC tag read → manholeId = keccak("BBMP-JAYANAGAR-MH-0417")');
+  step(1,'now');
+  const samples=[]; let human=false, peak=0;
+  for(let i=0;i<secs;i++){
+    tick();
+    const g=Math.max(0,+(44*(1-Math.abs(i-secs*.4)/(secs*.5))+Math.random()*3).toFixed(1));
+    gas.push(g); peak=Math.max(peak,g);
+    const isH = mode==='human' && i>=humanAt;
+    const th=drawThermal(isH, isH?1:0);
+    const s={t:i,h2s:g,thermal:+th.tmax.toFixed(1),human:th.warm>=12,depth:+(1.8-.4*i/secs).toFixed(2),motor:Math.round(900+Math.random()*500)};
+    samples.push(s);
+    $('vGas').textContent=g.toFixed(1)+' ppm'; $('roGas').className='ro'+(g>=50?' crit':g>=10?' warn':'');
+    $('vTh').textContent=s.thermal+' °C'; $('roTh').className='ro'+(s.human?' crit':'');
+    $('vDepth').textContent=s.depth+' m'; $('vMotor').textContent=s.motor+' mA';
+    drawGas();
+    if(s.human){ human=true; verdict('bad',`Person detected in manhole (${th.warm} warm pixels). Robot stopped, alarm on.`); break; }
+    verdict('ok','No person inside. Robot working alone.');
+    await sleep(260);
+  }
+  step(1,'done');
+
+  step(2,'now'); await sleep(400);
+  const bundle=JSON.stringify({job:jobNo,samples,human,peak});
+  const eh=await sha(bundle);
+  log(`evidence hash ${short(eh)} (${samples.length} samples + photos)`); step(2,'done');
+
+  step(3,'now'); await sleep(400);
+  const sig=hex(65); log(`robot signed proof · sig ${short(sig)}`); step(3,'done');
+
+  step(4,'now'); await sleep(700);
+  if(mode==='tamper'){
+    log(`contractor edits log before submitting: peak H₂S ${peak.toFixed(0)} → 4 ppm`,'rv');
+    await sleep(700);
+    log('submitProof() reverted: <b>BadSigner</b> — signature does not match edited data','rv');
+    step(4,'fail'); verdict('bad','Tampered proof rejected. Escrow stays locked.');
+    stats.blocked++; $('sBlocked').textContent=stats.blocked; lock(false); return;
+  }
+  const tx=hex(32);
+  if(human){
+    log(`tx ${short(tx)} · <span class="ev">HumanEntryDetected</span>(job ${jobNo}, slashed 0.50)`,'');
+    S.welfare+=S.bond; S.bond=0; S.escrow=0; money();
+    log('1.00 MSTC refunded to municipality · 0.50 MSTC bond → worker welfare fund');
+    step(4,'fail');
+    const li=$('steps').children;
+    li[5].className='fail'; li[5].lastElementChild.textContent='Human entry recorded on-chain permanently';
+    li[6].className='fail'; li[6].lastElementChild.textContent='No payment. Contractor barred until re-bonded';
+    stats.human++; $('sHuman').textContent=stats.human; lock(false); jobNo++; return;
+  }
+  log(`tx ${short(tx)} · <span class="ev">ProofAccepted</span>(job ${jobNo}, peak ${Math.round(peak)} ppm)`);
+  step(4,'done'); step(5,'now');
+  for(let w=5;w>0;w--){ $('window').textContent=`inspectors can dispute: ${w}s`; await sleep(1000); }
+  $('window').textContent=''; step(5,'done'); step(6,'now'); await sleep(500);
+  log(`tx ${short(hex(32))} · <span class="ev">Paid</span>(job ${jobNo}, 1.00 MSTC → contractor)`);
+  S.escrow=0; money(); step(6,'done');
+  verdict('ok','Job paid. No human entered the sewer.');
+  stats.safe++; $('sSafe').textContent=stats.safe; lock(false); jobNo++;
+}
+
+$('bClean').onclick=()=>run('clean');
+$('bHuman').onclick=()=>run('human');
+$('bTamper').onclick=()=>run('tamper');
+$('bReset').onclick=()=>{ if(!running){ reset(false); } };
+reset(false);
+/* resting state: show a completed sample run so the page isn't blank */
+(function preview(){ for(let i=0;i<24;i++) gas.push(Math.max(0,+(44*(1-Math.abs(i-9.6)/12)).toFixed(1))); drawGas(); gas=[]; })();
+</script>

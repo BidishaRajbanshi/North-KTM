@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SewerSafe Control Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,600;112..125,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Municipal Sewer Safety Control · Bengaluru demo</div>
+      <h1>SewerSafe</h1>
+      <div class="chips" id="sysChips"></div>
+    </div>
+    <div class="demo-box">
+      <div class="eyebrow">Demo mode</div>
+      <div class="demo-row">
+        <label class="sr" for="demoSewer">Sewer</label>
+        <select id="demoSewer"></select>
+        <button class="btn danger big" id="bCritical">Simulate critical hazard</button>
+      </div>
+      <div class="demo-row">
+        <button class="btn" id="bEntry">Entry attempt</button>
+        <button class="btn" id="bTamper">Tamper latest record</button>
+        <button class="btn quiet" id="bReset">Reset robot</button>
+      </div>
+    </div>
+  </header>
+
+  <section id="blockBanner" class="block-banner" hidden aria-live="assertive"></section>
+
+  <section class="demo-steps" id="demoSteps" hidden aria-label="Demo progress"></section>
+
+  <section class="tiles" id="tiles" aria-label="Overview"></section>
+
+  <div class="grid-main">
+    <section class="panel monitor" aria-label="Live monitoring">
+      <div class="panel-head"><h2>Live monitoring</h2><span class="muted small" id="updated"></span></div>
+      <div class="table-scroll">
+        <table class="mon">
+          <thead><tr>
+            <th>Sewer</th><th>Status</th><th>Entry</th><th class="num">Risk</th>
+            <th class="num">CH₄ ppm*</th><th class="num">Comb. ppm*</th><th class="num">Air idx*</th><th class="num">O₂ %</th>
+            <th class="num">Water %</th><th class="num">Temp °C</th><th class="num">RH %</th><th>Updated</th>
+          </tr></thead>
+          <tbody id="monBody"></tbody>
+        </table>
+      </div>
+      <p class="fine">*MQ-series prototype sensors: uncalibrated indicators, not certified gas measurements.</p>
+      <div class="detail" id="detail" hidden>
+        <div class="panel-head"><h3 id="detailTitle"></h3><span class="muted small" id="detailSub"></span></div>
+        <canvas id="trend" height="150" aria-label="Methane and oxygen trend for the selected sewer"></canvas>
+        <div class="legend"><span><i class="sw ch4"></i>Methane (ppm, left)</span><span><i class="sw o2"></i>Oxygen (%, right)</span><span><i class="sw thr"></i>Thresholds</span></div>
+        <div class="detail-actions">
+          <button class="btn" id="bInspect">Send robot to inspect</button>
+          <span class="muted small" id="detailAction"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel robot" aria-label="Robot control">
+      <div class="panel-head"><h2>Robot R1</h2><span class="state-chip" id="robotState">IDLE</span></div>
+      <div class="cam">
+        <canvas id="camCanvas" width="640" height="400" aria-label="Robot camera view"></canvas>
+        <img id="camImg" alt="Live robot camera" hidden>
+        <div class="cam-tag" id="camTag">MOCK CAMERA</div>
+      </div>
+      <div class="rstats">
+        <div><span>Mode</span><b id="rMode">—</b></div>
+        <div><span>Position</span><b id="rPos">—</b></div>
+        <div><span>Obstacle</span><b id="rObs">—</b></div>
+        <div><span>Battery</span><b id="rBat">—</b></div>
+      </div>
+      <div class="pad" role="group" aria-label="Robot movement">
+        <span></span><button class="btn pad-btn" data-cmd="forward" aria-label="Forward">▲</button><span></span>
+        <button class="btn pad-btn" data-cmd="left" aria-label="Left">◀</button>
+        <button class="btn stop" data-cmd="stop">STOP</button>
+        <button class="btn pad-btn" data-cmd="right" aria-label="Right">▶</button>
+        <span></span><button class="btn pad-btn" data-cmd="backward" aria-label="Backward">▼</button><span></span>
+      </div>
+      <p class="fine">Keyboard: arrow keys to drive, space to stop. Manual control during a mission takes over from the autopilot.</p>
+      <div class="mission" id="mission"></div>
+    </section>
+  </div>
+
+  <div class="grid-two">
+    <section class="panel" aria-label="Alerts">
+      <div class="panel-head"><h2>Alerts</h2><span class="muted small" id="alertCount"></span></div>
+      <ul class="alerts" id="alerts"></ul>
+    </section>
+    <section class="panel" aria-label="Maintenance and escrow">
+      <div class="panel-head"><h2>Maintenance · paid only on robot proof</h2></div>
+      <ul class="maint" id="maint"></ul>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="Inspection history">
+    <div class="panel-head"><h2>Inspection history</h2><span class="muted small">Click a row for findings and on-chain records</span></div>
+    <div class="table-scroll">
+      <table class="hist">
+        <thead><tr><th>Inspection</th><th>Sewer</th><th>Opened</th><th>Risk</th><th>Robot</th><th>Inspection</th><th>Maintenance</th><th>Blockchain</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Blockchain verification">
+    <div class="panel-head"><h2>Blockchain verification</h2><span class="muted small" id="chainSub"></span></div>
+    <div class="chain-status" id="chainStatus"></div>
+    <div class="table-scroll">
+      <table class="tx">
+        <thead><tr><th>Event</th><th>Inspection</th><th>Transaction</th><th class="num">Block</th><th>Time</th><th>Status</th></tr></thead>
+        <tbody id="txBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>SewerSafe prototype. Detects hazards, blocks human entry, sends a robot, records the evidence. It must never be used to justify sending a person into a sewer. Test only on a miniature model.</p>
+    <p><label for="opToken">Operator token</label> <input id="opToken" type="password" autocomplete="off" placeholder="only if OPERATOR_TOKEN is set"></p>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
