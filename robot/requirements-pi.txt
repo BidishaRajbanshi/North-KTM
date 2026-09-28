@@ -1,0 +1,10 @@
+# Extra packages for the REAL robot on a Raspberry Pi (not needed on your laptop).
+#   pip install -r robot/requirements-pi.txt
+-r requirements.txt
+adafruit-blinka
+adafruit-circuitpython-ads1x15
+adafruit-circuitpython-mlx90640
+adafruit-circuitpython-ina219
+adafruit-circuitpython-pn532
+gpiozero
+# picamera2 comes preinstalled on Raspberry Pi OS; if not: sudo apt install python3-picamera2

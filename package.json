@@ -1,0 +1,41 @@
+{
+  "name": "sewersafe",
+  "version": "1.0.0",
+  "description": "SewerSafe: IoT + robot + blockchain system that keeps people out of hazardous sewers",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "server": "node backend/server.js",
+    "test": "hardhat test && node backend/test/run.js",
+    "test:contracts": "hardhat test",
+    "test:backend": "node backend/test/run.js",
+    "fake:robot": "node tools/fake-esp32-robot.js",
+    "fake:sensor": "node tools/fake-esp32-sensor.js --danger",
+    "demo:escrow": "node scripts/demo-all.js",
+    "chain": "hardhat node",
+    "chain:lan": "hardhat node --hostname 0.0.0.0",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "job:local": "hardhat run scripts/new-job.js --network localhost",
+    "release:local": "hardhat run scripts/release.js --network localhost",
+    "status:local": "hardhat run scripts/status.js --network localhost",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network mstTestnet",
+    "job:testnet": "hardhat run scripts/new-job.js --network mstTestnet",
+    "release:testnet": "hardhat run scripts/release.js --network mstTestnet",
+    "status:testnet": "hardhat run scripts/status.js --network mstTestnet"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "dotenv": "^16.6.1",
+    "hardhat": "^2.29.1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "ethers": "^6.17.0",
+    "express": "^4.22.3",
+    "mongodb": "^6.21.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

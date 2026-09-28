@@ -1,0 +1,100 @@
+{
+  "_note": "DEMO DATA. Sewer IDs are made up; locations are real Bengaluru areas used as examples only. 'sensors' lists what is installed at each manhole: a missing reading from an installed sensor is treated as a fault, never as 'safe'.",
+  "sewers": [
+    {
+      "id": "S101",
+      "name": "Model sewer (ESP32 sensor node)",
+      "location": "Jayanagar 4th Block, Bengaluru",
+      "depth_m": 4.5,
+      "device": "esp32",
+      "sensors": [
+        "methane",
+        "air_quality",
+        "combustible",
+        "water_level",
+        "temperature",
+        "humidity",
+        "tilt"
+      ],
+      "note": "Add \"oxygen\" to this list only if your node has an O2 sensor; an installed sensor that sends nothing is treated as a fault."
+    },
+    {
+      "id": "S102",
+      "name": "Basavanagudi Bull Temple Rd",
+      "location": "Basavanagudi, Bengaluru",
+      "depth_m": 3.2,
+      "device": "simulated",
+      "sensors": [
+        "methane",
+        "air_quality",
+        "combustible",
+        "water_level",
+        "temperature",
+        "humidity"
+      ]
+    },
+    {
+      "id": "S103",
+      "name": "Koramangala 5th Block junction",
+      "location": "Koramangala, Bengaluru",
+      "depth_m": 5.0,
+      "device": "simulated",
+      "sensors": [
+        "methane",
+        "air_quality",
+        "combustible",
+        "oxygen",
+        "water_level",
+        "temperature",
+        "humidity"
+      ]
+    },
+    {
+      "id": "S104",
+      "name": "Indiranagar 100 Ft Rd",
+      "location": "Indiranagar, Bengaluru",
+      "depth_m": 3.8,
+      "device": "simulated",
+      "sensors": [
+        "methane",
+        "air_quality",
+        "combustible",
+        "water_level",
+        "temperature",
+        "humidity"
+      ]
+    },
+    {
+      "id": "S105",
+      "name": "Malleshwaram 8th Cross",
+      "location": "Malleshwaram, Bengaluru",
+      "depth_m": 2.9,
+      "device": "simulated",
+      "sensors": [
+        "methane",
+        "air_quality",
+        "combustible",
+        "oxygen",
+        "water_level",
+        "temperature",
+        "humidity"
+      ]
+    },
+    {
+      "id": "S106",
+      "name": "Hebbal outfall",
+      "location": "Hebbal, Bengaluru",
+      "depth_m": 6.1,
+      "device": "simulated",
+      "sensors": [
+        "methane",
+        "air_quality",
+        "combustible",
+        "oxygen",
+        "water_level",
+        "temperature",
+        "humidity"
+      ]
+    }
+  ]
+}
